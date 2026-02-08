@@ -3,67 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zitron4ik | Chef Gamer Blog</title>
+    <title>Zitron4ik | Pro Blog</title>
     <style>
-        :root { --gaming: #00ff41; --cooking: #ff4d4d; --bg: #0a0a0a; --card-bg: #161616; --text: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 50px; }
+        :root { 
+            --accent: #00ff41; 
+            --cooking: #ff4d4d; 
+            --bg: #0a0a0a; 
+            --card-bg: #161616; 
+            --text: #ffffff; 
+        }
         
-        header { padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; background: #000; border-bottom: 2px solid var(--gaming); }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 50px; transition: 0.3s; }
+        
+        header { padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; background: #000; border-bottom: 2px solid var(--accent); }
         .logo { font-size: 1.5rem; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
-        .logo span { color: var(--cooking); }
-        
-        .admin-trigger { background: transparent; border: 1px solid #333; color: #555; cursor: pointer; padding: 5px 10px; border-radius: 5px; transition: 0.3s; }
-        .admin-trigger:hover { color: var(--gaming); border-color: var(--gaming); }
+        .logo span { color: var(--accent); }
+
+        /* Палитра цветов */
+        .theme-selector { display: flex; gap: 8px; align-items: center; }
+        .color-dot { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; transition: 0.2s; }
+        .color-dot:hover { transform: scale(1.2); }
+
+        .admin-trigger { background: transparent; border: 1px solid #333; color: #555; cursor: pointer; padding: 5px 10px; border-radius: 5px; font-size: 12px; }
 
         .controls { display: flex; justify-content: center; gap: 15px; padding: 30px; }
-        .filter-btn { padding: 12px 25px; border: 2px solid; background: none; color: white; cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.3s; }
-        .btn-all { border-color: #555; }
-        .btn-cook { border-color: var(--cooking); }
-        .btn-game { border-color: var(--gaming); }
+        .filter-btn { padding: 10px 20px; border: 2px solid var(--accent); background: none; color: white; cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.3s; }
+        .filter-btn:hover { background: var(--accent); color: #000; }
 
         .grid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; padding: 0 20px; }
-        .card { background: var(--card-bg); border-radius: 15px; border: 1px solid #222; overflow: hidden; display: flex; flex-direction: column; position: relative; transition: 0.3s; }
-        .card:hover { border-color: #444; transform: translateY(-5px); }
+        .card { background: var(--card-bg); border-radius: 15px; border: 1px solid #222; overflow: hidden; display: flex; flex-direction: column; position: relative; }
         
         .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
         .card-content { padding: 20px; flex-grow: 1; }
 
-        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 10px; font-weight: bold; text-transform: uppercase; }
-        .tag-cook { background: var(--cooking); color: white; }
-        .tag-game { background: var(--gaming); color: black; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 10px; font-weight: bold; text-transform: uppercase; background: var(--accent); color: #000; }
 
-        .comments-section { background: #111; padding: 15px; border-top: 1px solid #222; }
-        .comment { margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 8px; border-radius: 5px; font-size: 0.9rem; border-left: 3px solid var(--gaming); }
-        .del-comm { color: var(--cooking); cursor: pointer; font-weight: bold; padding: 0 5px; }
+        /* Лайки и Комменты */
+        .actions-bar { display: flex; justify-content: flex-start; gap: 15px; padding: 10px 20px; background: #111; border-top: 1px solid #222; }
+        .like-btn { cursor: pointer; background: none; border: none; color: #fff; font-size: 1.1rem; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
+        .like-btn:hover { color: var(--cooking); transform: scale(1.1); }
+        .like-btn.active { color: var(--cooking); font-weight: bold; }
 
-        #adminPanel { display: none; max-width: 600px; margin: 20px auto; background: #1a1a1a; padding: 25px; border-radius: 12px; border: 2px solid var(--gaming); box-shadow: 0 0 20px rgba(0,255,65,0.2); }
-        input, textarea, select { width: 100%; margin-bottom: 12px; padding: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
-        .add-btn { background: var(--gaming); color: black; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 6px; text-transform: uppercase; }
-        .del-post-btn { background: var(--cooking); color: white; border: none; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; }
+        .comments-section { background: #0d0d0d; padding: 15px; border-top: 1px solid #222; }
+        .comment { margin-bottom: 8px; background: #1a1a1a; padding: 8px; border-radius: 5px; font-size: 0.85rem; border-left: 3px solid var(--accent); display: flex; justify-content: space-between; }
+
+        #adminPanel { display: none; max-width: 600px; margin: 20px auto; background: #1a1a1a; padding: 25px; border-radius: 12px; border: 2px solid var(--accent); }
+        input, textarea, select { width: 100%; margin-bottom: 12px; padding: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
+        .add-btn { background: var(--accent); color: black; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 6px; }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo">ZITRON<span>4IK</span></div>
-        <button class="admin-trigger" onclick="login()" id="loginBtn">[ Вход Шефа ]</button>
+        <div class="theme-selector">
+            <div class="color-dot" style="background:#00ff41" onclick="setTheme('#00ff41')"></div>
+            <div class="color-dot" style="background:#ff4d4d" onclick="setTheme('#ff4d4d')"></div>
+            <div class="color-dot" style="background:#00d4ff" onclick="setTheme('#00d4ff')"></div>
+            <div class="color-dot" style="background:#a020f0" onclick="setTheme('#a020f0')"></div>
+            <button class="admin-trigger" onclick="login()" id="loginBtn" style="margin-left:10px">Admin</button>
+        </div>
     </header>
 
     <div class="controls">
-        <button class="filter-btn btn-all" onclick="filter('all')">Все посты</button>
-        <button class="filter-btn btn-cook" onclick="filter('cook')">Кухня 🍳</button>
-        <button class="filter-btn btn-game" onclick="filter('game')">Игры ⛏️</button>
+        <button class="filter-btn" onclick="filter('all')">Все</button>
+        <button class="filter-btn" onclick="filter('cook')">Кухня</button>
+        <button class="filter-btn" onclick="filter('game')">Игры</button>
     </div>
 
     <div id="adminPanel">
-        <h3 style="color:var(--gaming); margin-top:0;">📝 Новый Крафт</h3>
-        <input type="text" id="postTitle" placeholder="Название (например: Супер Пицца)">
-        <textarea id="postText" rows="4" placeholder="Рецепт или описание видео..."></textarea>
+        <input type="text" id="postTitle" placeholder="Заголовок">
+        <textarea id="postText" rows="4" placeholder="Текст..."></textarea>
         <input type="text" id="videoUrl" placeholder="Ссылка на YouTube">
         <select id="postType">
-            <option value="cook">Категория: Кухня</option>
-            <option value="game">Категория: Игры</option>
+            <option value="cook">Кухня</option>
+            <option value="game">Игры</option>
         </select>
         <button class="add-btn" onclick="addPost()">Опубликовать</button>
     </div>
@@ -71,62 +86,52 @@
     <div class="grid" id="mainGrid"></div>
 
     <script>
-        // Добавил твои первые посты в "память", чтобы сайт не был пустым при первом запуске
         let posts = JSON.parse(localStorage.getItem('mySitePosts')) || [
-            {
-                id: 1,
-                title: "Добро пожаловать в мой блог!",
-                text: "Здесь будут мои лучшие рецепты и видео из Minecraft. Нажми 'Вход Шефа' и введи свой секретный код, чтобы начать писать!",
-                type: "cook",
-                video: null,
-                comments: []
-            }
+            { id: 1, title: "Добро пожаловать!", text: "Выбирай цвет сайта вверху!", type: "game", video: null, likes: 0, comments: [] }
         ];
         let isAdmin = false;
 
+        // Смена темы
+        function setTheme(color) {
+            document.documentElement.style.setProperty('--accent', color);
+            localStorage.setItem('siteTheme', color);
+        }
+
+        // Загрузка темы
+        const savedTheme = localStorage.getItem('siteTheme');
+        if (savedTheme) setTheme(savedTheme);
+
         function login() {
-            if (prompt("Введите секретный код:") === "zitron4ik2015") {
+            if (prompt("Код:") === "zitron4ik2015") {
                 isAdmin = true;
                 document.getElementById('adminPanel').style.display = 'block';
-                document.getElementById('loginBtn').innerText = "[ РЕЖИМ АДМИНА ]";
                 renderPosts();
             }
         }
-
-        function filter(type) { renderPosts(type); }
 
         function addPost() {
             const title = document.getElementById('postTitle').value;
             const text = document.getElementById('postText').value;
             const type = document.getElementById('postType').value;
             let video = document.getElementById('videoUrl').value;
+            if (!title) return;
 
-            if (!title) return alert("Забыл заголовок!");
+            let vId = video.includes('v=') ? video.split('v=')[1].split('&')[0] : (video.includes('youtu.be/') ? video.split('youtu.be/')[1] : null);
 
-            let videoId = null;
-            if (video) {
-                if (video.includes('v=')) videoId = video.split('v=')[1].split('&')[0];
-                else if (video.includes('youtu.be/')) videoId = video.split('youtu.be/')[1];
-            }
-
-            posts.unshift({ id: Date.now(), title, text, type, video: videoId, comments: [] });
-            save();
-            document.getElementById('postTitle').value = '';
-            document.getElementById('postText').value = '';
-            document.getElementById('videoUrl').value = '';
-        }
-
-        function deletePost(id) { if(confirm("Удалить?")) { posts = posts.filter(p => p.id !== id); save(); } }
-
-        function addComment(postId) {
-            const input = document.getElementById(`in-${postId}`);
-            if (!input.value) return;
-            posts.find(p => p.id === postId).comments.push({id: Date.now(), text: input.value});
+            posts.unshift({ id: Date.now(), title, text, type, video: vId, likes: 0, comments: [] });
             save();
         }
 
-        function deleteComment(pId, cId) {
-            posts.find(p => p.id === pId).comments = posts.find(p => p.id === pId).comments.filter(c => c.id !== cId);
+        function toggleLike(id) {
+            const post = posts.find(p => p.id === id);
+            post.likes++;
+            save();
+        }
+
+        function addComment(id) {
+            const inp = document.getElementById(`in-${id}`);
+            if (!inp.value) return;
+            posts.find(p => p.id === id).comments.push(inp.value);
             save();
         }
 
@@ -135,31 +140,30 @@
             renderPosts();
         }
 
-        function renderPosts(filterType = 'all') {
+        function filter(t) { renderPosts(t); }
+
+        function renderPosts(f = 'all') {
             const grid = document.getElementById('mainGrid');
             grid.innerHTML = '';
-            posts.forEach(post => {
-                if (filterType !== 'all' && post.type !== filterType) return;
+            posts.forEach(p => {
+                if (f !== 'all' && p.type !== f) return;
                 const card = document.createElement('div');
-                card.className = `card`;
+                card.className = 'card';
                 card.innerHTML = `
-                    ${post.video ? `<div class="video-container"><iframe src="https://www.youtube.com/embed/${post.video}"></iframe></div>` : ''}
+                    ${p.video ? `<div class="video-container"><iframe src="https://www.youtube.com/embed/${p.video}"></iframe></div>` : ''}
                     <div class="card-content">
-                        <span class="tag ${post.type === 'cook' ? 'tag-cook' : 'tag-game'}">${post.type === 'cook' ? 'КУХНЯ' : 'ИГРЫ'}</span>
-                        <h3>${post.title}</h3>
-                        <p style="white-space: pre-wrap;">${post.text}</p>
+                        <span class="tag">${p.type}</span>
+                        <h3>${p.title}</h3>
+                        <p>${p.text}</p>
                     </div>
-                    ${isAdmin ? `<button class="del-post-btn" onclick="deletePost(${post.id})">УДАЛИТЬ ПОСТ</button>` : ''}
+                    <div class="actions-bar">
+                        <button class="like-btn" onclick="toggleLike(${p.id})">❤️ ${p.likes}</button>
+                    </div>
                     <div class="comments-section">
-                        ${post.comments.map(c => `
-                            <div class="comment">
-                                <span>${c.text}</span>
-                                ${isAdmin ? `<span class="del-comm" onclick="deleteComment(${post.id}, ${c.id})">✕</span>` : ''}
-                            </div>
-                        `).join('')}
-                        <div class="comment-input-group">
-                            <input type="text" class="comment-input" id="in-${post.id}" placeholder="Ваш коммент...">
-                            <button onclick="addComment(${post.id})" style="background:var(--gaming); border:none; padding:8px 15px; cursor:pointer; border-radius:4px; font-weight:bold">OK</button>
+                        ${p.comments.map(c => `<div class="comment"><span>${c}</span></div>`).join('')}
+                        <div style="display:flex; gap:5px; margin-top:10px">
+                            <input type="text" id="in-${p.id}" placeholder="Коммент..." style="margin:0; padding:5px; flex-grow:1">
+                            <button onclick="addComment(${p.id})" style="background:var(--accent); border:none; border-radius:4px; cursor:pointer">OK</button>
                         </div>
                     </div>
                 `;
