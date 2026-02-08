@@ -2,125 +2,204 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>ZITRON4IK | Realtime Blog</title>
+    <title>ZITRONTCHIK | HUB & ARENA</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0a0a0a; color: white; padding: 20px; }
-        .container { max-width: 600px; margin: auto; }
-        .logo { color: #00ff41; font-size: 30px; font-weight: bold; text-align: center; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
-        .card { background: #161616; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 20px; border-left: 5px solid #00ff41; transition: 0.3s; }
-        .card:hover { border-color: #00ff41; }
-        .btn { background: #00ff41; color: black; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn:hover { transform: scale(1.05); opacity: 0.9; }
+        :root { --accent: #00ff41; --danger: #ff4d4d; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0a0a0a; color: white; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 700px; margin: auto; }
+        
+        /* ВКЛАДКИ */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+        .tab-btn { padding: 10px 25px; border: 2px solid var(--accent); background: none; color: white; cursor: pointer; border-radius: 8px; font-weight: bold; text-transform: uppercase; }
+        .tab-btn.active { background: var(--accent); color: black; }
+        .tab-btn.pvp-tab { border-color: var(--danger); color: var(--danger); }
+        .tab-btn.pvp-tab.active { background: var(--danger); color: white; }
+
+        /* ОКНО PVP */
+        #pvpWindow { display: none; background: #000; border: 3px solid var(--danger); border-radius: 15px; width: 100%; height: 500px; position: relative; overflow: hidden; cursor: crosshair; }
+        .player { position: absolute; width: 45px; height: 45px; background: var(--accent); border-radius: 8px; transition: 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .hp-bar { width: 40px; height: 6px; background: #333; border: 1px solid #000; position: absolute; top: -12px; border-radius: 3px; }
+        .hp-fill { height: 100%; background: #00ff00; transition: 0.2s; }
+        .p-name { font-size: 10px; font-weight: bold; color: white; margin-top: 2px; text-shadow: 1px 1px 2px black; }
+        .weapon-vfx { position: absolute; font-size: 24px; pointer-events: none; animation: fly 0.4s forwards; }
+        @keyframes fly { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(2) translateY(-20px); } }
+
+        /* СТАРЫЙ ДОБРЫЙ БЛОГ */
+        .card { background: #161616; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 20px; border-left: 5px solid var(--accent); }
+        .br-card { border-left-color: var(--danger); background: #1a0a0a; }
+        .btn { background: var(--accent); color: black; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .input { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
-        .comment { background: #0d0d0d; padding: 8px; margin-top: 5px; border-radius: 4px; font-size: 14px; color: #ccc; border-left: 2px solid #00ff41; }
-        #admin { display: none; background: #1a1a1a; padding: 20px; border-radius: 12px; margin-bottom: 30px; border: 1px dashed #00ff41; }
+        #admin { display: none; background: #1a1a1a; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 2px solid var(--accent); }
+        
+        #lockScreen { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:black; color:red; flex-direction:column; justify-content:center; align-items:center; z-index:9999; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="logo">ZITRON4IK BLOG</div>
+<div id="lockScreen">
+    <h1>⚠️ САЙТ ЗАБЛОКИРОВАН</h1>
+    <input type="password" id="recoveryCode" class="input" style="width:250px" placeholder="Запасной код">
+    <button class="btn" onclick="unlockSite()">ОТКРЫТЬ</button>
+</div>
 
-    <center><button onclick="login()" style="background:none; border:none; color:#333; cursor:pointer; margin-bottom: 20px;">[ Вход Шефа ]</button></center>
+<div class="container" id="mainApp">
+    <div style="text-align:center; color:var(--accent); font-size:40px; font-weight:bold; margin-bottom:10px;">ZITRONTCHIK</div>
 
-    <div id="admin">
-        <h3 style="margin-top:0; color:#00ff41;">Новый крафт</h3>
-        <input id="t" class="input" placeholder="Заголовок (например: Как приготовить алмазную кирку)">
-        <textarea id="txt" class="input" rows="3" placeholder="Текст поста..."></textarea>
-        <button class="btn" onclick="add()">ОПУБЛИКОВАТЬ В ОБЛАКО</button>
+    <div class="tabs">
+        <button class="tab-btn active" id="btnBlog" onclick="showTab('blog')">Новости</button>
+        <button class="tab-btn pvp-tab" id="btnPvp" onclick="showTab('pvp')">PVP АРЕНА</button>
     </div>
 
-    <div id="posts"></div>
+    <div id="blogTab">
+        <center><button onclick="login()" style="background:none; border:none; color:#1a1a1a; cursor:pointer; margin-bottom:10px;">[ Админ ]</button></center>
+        <div id="admin">
+            <h3>Запланировать Битву</h3>
+            <input id="bTitle" class="input" placeholder="Название битвы">
+            <input id="bTime" class="input" placeholder="Время (18:34)">
+            <input id="bWeapon" class="input" placeholder="Смешное оружие (Эмодзи или текст)">
+            <button class="btn" onclick="createBattle()">ОПУБЛИКОВАТЬ АНОНС</button>
+        </div>
+        <div id="posts"></div>
+    </div>
+
+    <div id="pvpTab" style="display:none;">
+        <div style="text-align:center; color:var(--danger); font-weight:bold; margin-bottom:10px;">🔥 СЕЙЧАС В БОЮ 🔥</div>
+        <div id="pvpWindow" onclick="doAttack(event)">
+            <div id="respawnUI" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; z-index:100;">
+                <h2 style="color:red">ТЫ ВЫЛЕТЕЛ!</h2>
+                <button class="btn" onclick="spawnPlayer()">ВОЙТИ В БОЙ</button>
+            </div>
+        </div>
+        <p style="font-size:12px; color:#555; text-align:center; margin-top:10px;">Управление: Мышка/Тач — движение. Клик по игроку — удар!</p>
+    </div>
 </div>
 
 <script>
-    // ТВОИ НАСТРОЙКИ (ПОЛНОСТЬЮ ГОТОВЫ)
     const firebaseConfig = {
         apiKey: "AIzaSyAadX10zi4a5dA9VqR80RVhcTtiBjwqdms",
         authDomain: "zitron-blog.firebaseapp.com",
         projectId: "zitron-blog",
         databaseURL: "https://zitron-blog-default-rtdb.firebaseio.com/"
     };
-
-    // Запуск базы данных
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Вход для тебя
-    function login() { 
-        if(prompt("Введи секретный код:") === "zitron4ik2015") {
-            document.getElementById('admin').style.display = 'block';
-            alert("Привет, Шеф! Панель открыта.");
-        }
+    let myName = localStorage.getItem('zitrontchik_user') || "Боец_" + Math.floor(Math.random()*99);
+    let myHP = 100;
+    let currentWeapon = "🍋";
+
+    // СИСТЕМА ВКЛАДОК
+    function showTab(tab) {
+        document.getElementById('blogTab').style.display = tab === 'blog' ? 'block' : 'none';
+        document.getElementById('pvpTab').style.display = tab === 'pvp' ? 'block' : 'none';
+        document.getElementById('btnBlog').classList.toggle('active', tab === 'blog');
+        document.getElementById('btnPvp').classList.toggle('active', tab === 'pvp');
+        if(tab === 'pvp') spawnPlayer();
+        else db.ref('arenaPlayers/' + myName).remove();
     }
 
-    // Добавление поста в облако Google
-    function add() {
-        const title = document.getElementById('t').value;
-        const text = document.getElementById('txt').value;
-        if(title && text) {
-            db.ref('posts').push({ 
-                title: title, 
-                text: text, 
-                likes: 0,
-                time: Date.now() 
+    // ЛОГИКА АРЕНЫ
+    function spawnPlayer() {
+        myHP = 100;
+        document.getElementById('respawnUI').style.display = 'none';
+        db.ref('arenaPlayers/' + myName).set({ x: 100, y: 100, hp: 100 });
+        db.ref('arenaPlayers/' + myName).onDisconnect().remove();
+    }
+
+    document.getElementById('pvpWindow').onmousemove = (e) => {
+        const rect = pvpWindow.getBoundingClientRect();
+        if(myHP > 0) {
+            db.ref('arenaPlayers/' + myName).update({
+                x: e.clientX - rect.left - 20,
+                y: e.clientY - rect.top - 20
             });
-            document.getElementById('t').value = ''; 
-            document.getElementById('txt').value = '';
-        } else {
-            alert("Заполни заголовок и текст!");
         }
+    };
+
+    function doAttack(e) {
+        const weaponVfx = document.createElement('div');
+        weaponVfx.className = 'weapon-vfx';
+        weaponVfx.innerText = currentWeapon;
+        weaponVfx.style.left = (e.offsetX - 10) + 'px';
+        weaponVfx.style.top = (e.offsetY - 10) + 'px';
+        pvpWindow.appendChild(weaponVfx);
+        setTimeout(() => weaponVfx.remove(), 400);
+
+        // Проверка попадания по другим
+        db.ref('arenaPlayers').once('value', (s) => {
+            const players = s.val();
+            Object.keys(players).forEach(name => {
+                if(name !== myName) {
+                    const p = players[name];
+                    const dist = Math.hypot(e.offsetX - (p.x+20), e.offsetY - (p.y+20));
+                    if(dist < 40) {
+                        db.ref('arenaPlayers/' + name + '/hp').transaction(h => (h || 100) - 10);
+                    }
+                }
+            });
+        });
     }
 
-    // Лайк (обновляется у всех сразу)
-    function like(id) { 
-        db.ref('posts/' + id + '/likes').transaction(c => (c || 0) + 1); 
+    db.ref('arenaPlayers').on('value', (s) => {
+        const players = s.val();
+        const win = document.getElementById('pvpWindow');
+        win.querySelectorAll('.player').forEach(p => p.remove());
+        
+        if(!players) return;
+        Object.keys(players).forEach(name => {
+            const p = players[name];
+            if(name === myName) {
+                myHP = p.hp;
+                if(myHP <= 0) {
+                    document.getElementById('respawnUI').style.display = 'block';
+                    db.ref('arenaPlayers/' + myName).remove();
+                }
+            }
+            const pDiv = document.createElement('div');
+            pDiv.className = 'player';
+            pDiv.style.left = p.x + 'px'; pDiv.style.top = p.y + 'px';
+            pDiv.innerHTML = `
+                <div class="hp-bar"><div class="hp-fill" style="width:${p.hp}%"></div></div>
+                <div class="p-name">${name}</div>
+            `;
+            win.appendChild(pDiv);
+        });
+    });
+
+    // БЛОГ И АДМИНКА
+    function login() { if(prompt("Пароль:") === "zitron4ik2015") document.getElementById('admin').style.display = 'block'; }
+    
+    function createBattle() {
+        const title = document.getElementById('bTitle').value;
+        const time = document.getElementById('bTime').value;
+        const weapon = document.getElementById('bWeapon').value;
+        db.ref('posts').push({ title, time, weapon, type: 'battle' });
     }
 
-    // Комментарий (видят все)
-    function comm(id) {
-        const i = document.getElementById('in'+id);
-        if(i.value) { 
-            db.ref('posts/' + id + '/comments').push(i.value); 
-            i.value = ''; 
-        }
-    }
-
-    // ГЛАВНАЯ МАГИЯ: Получение данных в реальном времени
     db.ref('posts').on('value', (s) => {
-        const div = document.getElementById('posts');
-        div.innerHTML = '';
-        const data = s.val();
-        if(!data) {
-            div.innerHTML = '<p style="text-align:center; color:#555;">Постов пока нет. Зайди как админ и напиши первый!</p>';
-            return;
-        }
-
-        // Выводим посты (новые сверху)
-        Object.keys(data).reverse().forEach(key => {
-            const p = data[key];
+        const div = document.getElementById('posts'); div.innerHTML = '';
+        const data = s.val(); if(!data) return;
+        Object.keys(data).reverse().forEach(k => {
+            const p = data[k];
             div.innerHTML += `
-                <div class="card">
-                    <h2 style="margin-top:0;">${p.title}</h2>
-                    <p style="white-space: pre-wrap;">${p.text}</p>
-                    <button class="btn" onclick="like('${key}')">❤️ ${p.likes || 0}</button>
-                    
-                    <div style="margin-top:20px;">
-                        <b style="font-size:12px; color:#555;">КОММЕНТАРИИ:</b>
-                        <div id="list-${key}">
-                            ${p.comments ? Object.values(p.comments).map(c => `<div class="comment">${c}</div>`).join('') : '<div style="color:#333; font-size:12px;">Пока пусто...</div>'}
-                        </div>
-                    </div>
-
-                    <div style="display:flex; gap:5px; margin-top:10px">
-                        <input id="in${key}" class="input" style="margin:0; padding:8px;" placeholder="Твой коммент...">
-                        <button class="btn" style="padding:5px 15px;" onclick="comm('${key}')">OK</button>
-                    </div>
+                <div class="card ${p.type === 'battle' ? 'br-card' : ''}">
+                    <h2 style="margin:0">${p.title}</h2>
+                    ${p.time ? `<p style="color:var(--danger)">⏰ СТАРТ: ${p.time}</p>` : ''}
+                    ${p.weapon ? `<p>⚔️ ОРУЖИЕ: ${p.weapon}</p>` : ''}
+                    <button class="btn" style="width:100%" onclick="showTab('pvp')">ПЕРЕЙТИ НА АРЕНУ</button>
                 </div>`;
         });
     });
+
+    // ТВОЯ ЗАЩИТА (RESTPLAY2015)
+    db.ref('siteSettings/isLocked').on('value', (s) => {
+        const locked = s.val() === true;
+        document.getElementById('lockScreen').style.display = locked ? 'flex' : 'none';
+        document.getElementById('mainApp').style.display = locked ? 'none' : 'block';
+    });
+    function unlockSite() { if(document.getElementById('recoveryCode').value === "restplay2015") db.ref('siteSettings/isLocked').set(false); }
 </script>
 </body>
 </html>
