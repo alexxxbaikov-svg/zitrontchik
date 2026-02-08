@@ -2,73 +2,60 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>ZITRONTCHIK | ARENA ABILITIES</title>
+    <title>ZITRONTCHIK | ARENA ULTIMATE</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #000; color: #0f0; text-align: center; margin: 0; user-select: none; }
-        #arena { background: #111; border: 3px solid #f00; width: 100%; height: 450px; position: relative; overflow: hidden; margin: 20px auto; max-width: 850px; cursor: crosshair; display: none; }
+        body { font-family: 'Segoe UI', sans-serif; background: #000; color: #0f0; text-align: center; margin: 0; user-select: none; overflow: hidden; }
         
         /* ЛОББИ */
-        #lobby { padding: 50px; }
-        .weapon-select { display: flex; justify-content: center; gap: 20px; margin-top: 30px; flex-wrap: wrap; }
-        .weapon-btn { background: #222; border: 2px solid #0f0; border-radius: 15px; padding: 20px; cursor: pointer; transition: 0.3s; width: 150px; box-shadow: 0 0 10px rgba(0,255,0,0.5); }
-        .weapon-btn:hover { background: #0f0; transform: scale(1.1); box-shadow: 0 0 20px #0f0; }
-        .weapon-btn span { font-size: 50px; display: block; margin-bottom: 10px; }
-        .weapon-btn b { color: #fff; font-size: 16px; display: block; }
-        .weapon-btn p { color: #ccc; font-size: 12px; margin-top: 5px; }
+        #lobby { padding: 40px; display: block; }
+        .weapon-select { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
+        .weapon-btn { background: #111; border: 2px solid #0f0; border-radius: 12px; padding: 15px; cursor: pointer; transition: 0.3s; width: 140px; }
+        .weapon-btn:hover { background: #0f0; transform: scale(1.05); color: #000; }
+        .weapon-btn span { font-size: 40px; display: block; }
+        .weapon-btn p { font-size: 11px; color: #aaa; }
 
-        /* ИГРОКИ И ОРУЖИЕ */
-        .player { position: absolute; width: 40px; height: 40px; border-radius: 8px; background: #0f0; z-index: 5; transition: 0.1s linear; }
-        .player.me { background: #00f; border: 2px solid white; box-shadow: 0 0 15px #00f; z-index: 10; }
-        .player.stunned { background: #ffc107; border-color: #ffeb3b; animation: stun-flash 0.5s infinite; }
-        .player.invulnerable { background: #8bc34a; border-color: #cddc39; animation: invuln-flash 0.2s infinite; }
-        @keyframes stun-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        @keyframes invuln-flash { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-
-
-        .weapon { position: absolute; font-size: 25px; transition: 0.1s; pointer-events: none; z-index: 15; transform-origin: center; }
-        .attacking { animation: strike 0.2s ease-in-out; }
-        @keyframes strike { 0% {transform: rotate(0deg) scale(1);} 50% {transform: rotate(-45deg) scale(2);} 100% {transform: rotate(0deg) scale(1);} }
-
-        /* СПОСОБНОСТИ */
-        .ability-vfx { position: absolute; font-size: 30px; pointer-events: none; animation: fly-away 0.8s forwards; z-index: 20; }
-        @keyframes fly-away { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-50px) scale(2); } }
+        /* АРЕНА */
+        #arena { background: #0a0a0a; border: 4px solid #f00; width: 100%; height: 450px; position: relative; overflow: hidden; margin: 10px auto; max-width: 900px; display: none; }
         
-        .banana-peel { position: absolute; font-size: 25px; pointer-events: none; z-index: 1; opacity: 0.8; }
-        
-        .hp { width: 45px; height: 6px; background: #333; position: absolute; top: -12px; border-radius: 3px; border: 1px solid #000; }
-        .hp-fill { height: 100%; background: #0f0; transition: 0.3s; }
-        .name { font-size: 11px; position: absolute; top: -28px; width: 120px; left: -40px; color: #fff; font-weight: bold; }
+        /* ИГРОКИ */
+        .player { position: absolute; width: 40px; height: 40px; border-radius: 8px; background: #0f0; transition: top 0.1s linear, left 0.1s linear; }
+        .player.me { background: #00f; border: 2px solid #fff; box-shadow: 0 0 15px #00f; z-index: 10; }
+        .player.invul { filter: brightness(2) drop-shadow(0 0 10px #fff); }
+        .player.stun { opacity: 0.5; filter: grayscale(1); }
 
-        /* ИНТЕРФЕЙС БОЯ */
-        #ability-ui { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 10px; border: 1px solid #0f0; display: none; }
-        #ability-ui div { display: flex; align-items: center; color: #fff; }
-        #ability-ui span { font-size: 24px; margin-right: 10px; }
-        #cooldown-bar { width: 100px; height: 10px; background: #333; border-radius: 5px; overflow: hidden; margin-left: 10px; }
-        #cooldown-fill { height: 100%; width: 0%; background: #00f; transition: width 0.1s linear; }
+        .weapon-img { position: absolute; font-size: 24px; pointer-events: none; transition: 0.1s; }
+        .attacking { animation: strike 0.2s; }
+        @keyframes strike { 0% { transform: scale(1); } 50% { transform: scale(2) rotate(-20deg); } 100% { transform: scale(1); } }
+
+        /* UI */
+        .hp-bar { width: 40px; height: 6px; background: #333; position: absolute; top: -12px; border: 1px solid #000; }
+        .hp-fill { height: 100%; background: #0f0; }
+        .name-tag { font-size: 10px; position: absolute; top: -26px; width: 100px; left: -30px; color: #fff; }
+        
+        #ability-hud { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: none; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 20px; border: 1px solid #0f0; }
+        #cd-box { width: 100px; height: 10px; background: #222; margin-left: 10px; border-radius: 5px; overflow: hidden; display: inline-block; }
+        #cd-fill { height: 100%; width: 0%; background: #0f0; }
     </style>
 </head>
 <body>
 
     <div id="lobby">
-        <h1 style="color: #0f0; text-shadow: 0 0 15px #0f0;">ВЫБЕРИ СВОЙ БОЕВОЙ СТИЛЬ</h1>
+        <h1 style="text-shadow: 0 0 10px #0f0;">🍋 ZITRON ARENA ⚔️</h1>
+        <h3>ВЫБЕРИ ОРУЖИЕ ДЛЯ БОЯ:</h3>
         <div class="weapon-select">
-            <div class="weapon-btn" onclick="selectWeapon('🗡️', 'МЕЧ', 'Рывок вперед')"><span>🗡️</span><b>МЕЧ</b><p>F: Рывок (быстрое сближение)</p></div>
-            <div class="weapon-btn" onclick="selectWeapon('🍋', 'ЛИМОН', 'Кислотный Сплеш')"><span>🍋</span><b>ЛИМОН</b><p>F: Кислотный Сплеш (дальний урон)</p></div>
-            <div class="weapon-btn" onclick="selectWeapon('🥖', 'БАГЕТ', 'Защитный Батон')"><span>🥖</span><b>БАГЕТ</b><p>F: Неуязвимость (кратковременно)</p></div>
-            <div class="weapon-btn" onclick="selectWeapon('🎸', 'ГИТАРА', 'Звуковая Волна')"><span>🎸</span><b>ГИТАРА</b><p>F: Звуковая Волна (АОЕ урон)</p></div>
-            <div class="weapon-btn" onclick="selectWeapon('🍌', 'БАНАН', 'Банановая Ловушка')"><span>🍌</span><b>БАНАН</b><p>F: Банановая кожура (обездвиживание)</p></div>
+            <div class="weapon-btn" onclick="join('🗡️', 'dash')"><span>🗡️</span><b>МЕЧ</b><p>F: Рывок вперед</p></div>
+            <div class="weapon-btn" onclick="join('🍋', 'shoot')"><span>🍋</span><b>ЛИМОН</b><p>F: Дальний выстрел</p></div>
+            <div class="weapon-btn" onclick="join('🥖', 'shield')"><span>🥖</span><b>БАГЕТ</b><p>F: Щит (3 сек)</p></div>
+            <div class="weapon-btn" onclick="join('🎸', 'wave')"><span>🎸</span><b>ГИТАРА</b><p>F: Звуковой удар</p></div>
         </div>
     </div>
 
-    <div id="arena" onmousedown="doAttack(event)"></div>
-
-    <div id="ability-ui">
-        <div>
-            <span id="ability-icon"></span>
-            <div id="cooldown-bar"><div id="cooldown-fill"></div></div>
-        </div>
+    <div id="arena" onmousedown="attack()"></div>
+    
+    <div id="ability-hud">
+        <span id="cur-wpn"></span> [F] <div id="cd-box"><div id="cd-fill"></div></div>
     </div>
 
 <script>
@@ -79,249 +66,111 @@
     firebase.initializeApp(config);
     const db = firebase.database();
 
-    let myId = "Zitron_" + Math.floor(Math.random()*99);
-    let p = { 
-        x: 150, y: 350, vy: 0, hp: 100, 
-        isAttacking: false, weapon: "🗡️", 
-        isInvulnerable: false, isStunned: false,
-        cooldown: 0, maxCooldown: 5000 // 5 секунд
-    };
+    let myId = "User_" + Math.floor(Math.random()*999);
+    let state = { x: 200, y: 350, vy: 0, hp: 100, wpn: '🗡️', type: '', atk: false, inv: false, stun: false, cd: 0 };
     let keys = {};
-    let gameActive = false;
+    let active = false;
 
-    function selectWeapon(emoji, name, description) {
-        p.weapon = emoji;
+    function join(emoji, type) {
+        state.wpn = emoji; state.type = type;
         document.getElementById('lobby').style.display = 'none';
         document.getElementById('arena').style.display = 'block';
-        document.getElementById('ability-ui').style.display = 'flex';
-        document.getElementById('ability-icon').innerText = emoji;
-        gameActive = true;
-        
-        db.ref('players/' + myId).set(p);
+        document.getElementById('ability-hud').style.display = 'block';
+        document.getElementById('cur-wpn').innerText = emoji;
+        active = true;
+        db.ref('players/' + myId).set(state);
         db.ref('players/' + myId).onDisconnect().remove();
     }
 
-    window.onkeydown = (e) => {
-        keys[e.code] = true;
-        if (e.code === 'KeyF' && gameActive && p.cooldown <= 0) {
-            useAbility();
-        }
+    window.onkeydown = e => { 
+        keys[e.code] = true; 
+        if(e.code === 'KeyF' && state.cd <= 0) useAbility();
     };
-    window.onkeyup = (e) => keys[e.code] = false;
+    window.onkeyup = e => keys[e.code] = false;
 
+    // ГЛАВНЫЙ ЦИКЛ
     setInterval(() => {
-        if (!gameActive || p.hp <= 0) return;
-        if (p.isStunned) return; // Не двигаемся, если оглушены
+        if(!active || state.stun) return;
 
-        if (keys['KeyA']) p.x -= 7;
-        if (keys['KeyD']) p.x += 7;
-        if (keys['Space'] && p.y >= 350) p.vy = -16;
-        p.vy += 0.9; p.y += p.vy;
-        if (p.y > 350) { p.y = 350; p.vy = 0; }
-        if (p.x < 0) p.x = 0;
-        if (p.x > 800) p.x = 800;
+        if(keys['KeyA']) state.x -= 7;
+        if(keys['KeyD']) state.x += 7;
+        if(keys['Space'] && state.y >= 350) state.vy = -15;
 
-        // Обновляем перезарядку
-        if (p.cooldown > 0) {
-            p.cooldown -= 30; // Уменьшаем на интервал
-            if (p.cooldown < 0) p.cooldown = 0;
-            const cooldownPercent = (p.cooldown / p.maxCooldown) * 100;
-            document.getElementById('cooldown-fill').style.width = cooldownPercent + '%';
-        } else {
-            document.getElementById('cooldown-fill').style.width = '0%';
+        state.vy += 0.8; state.y += state.vy;
+        if(state.y > 350) { state.y = 350; state.vy = 0; }
+        if(state.x < 0) state.x = 0; if(state.x > 850) state.x = 850;
+
+        if(state.cd > 0) {
+            state.cd -= 50;
+            document.getElementById('cd-fill').style.width = (state.cd / 3000 * 100) + "%";
         }
 
-        db.ref('players/' + myId).update(p);
-    }, 30);
+        db.ref('players/' + myId).update({ x: state.x, y: state.y, hp: state.hp, atk: state.atk, inv: state.inv, stun: state.stun });
+    }, 50);
 
-    // СПОСОБНОСТИ
-    function useAbility() {
-        p.cooldown = p.maxCooldown; // Устанавливаем КД
-        db.ref('players/' + myId).update({ cooldown: p.cooldown });
-
-        switch(p.weapon) {
-            case '🗡️': // МЕЧ - Рывок
-                const dashDistance = 150;
-                p.x += (keys['KeyD'] ? dashDistance : (keys['KeyA'] ? -dashDistance : 0)); // Рывок в сторону движения
-                db.ref('players/' + myId).update({ x: p.x });
-                break;
-            case '🍋': // ЛИМОН - Кислотный Сплеш (дальний урон)
-                const splashX = p.x + (keys['KeyD'] ? 100 : (keys['KeyA'] ? -100 : 0)); // Лимон летит вперед
-                const splashY = p.y;
-
-                const vfxSplash = document.createElement('div');
-                vfxSplash.className = 'ability-vfx';
-                vfxSplash.innerText = '🍋💥';
-                vfxSplash.style.left = splashX + 'px';
-                vfxSplash.style.top = splashY + 'px';
-                document.getElementById('arena').appendChild(vfxSplash);
-                setTimeout(() => vfxSplash.remove(), 800);
-
-                db.ref('players').once('value', (s) => {
-                    const players = s.val();
-                    for(let id in players) {
-                        if(id !== myId) {
-                            const target = players[id];
-                            const dist = Math.hypot(splashX - (target.x+20), splashY - (target.y+20));
-                            if(dist < 80 && !target.isInvulnerable) { // Радиус сплеша
-                                db.ref('players/' + id + '/hp').transaction(h => (h || 100) - 25);
-                            }
-                        }
-                    }
-                });
-                break;
-            case '🥖': // БАГЕТ - Защитный Батон (неуязвимость)
-                p.isInvulnerable = true;
-                db.ref('players/' + myId).update({ isInvulnerable: true });
-                setTimeout(() => {
-                    p.isInvulnerable = false;
-                    db.ref('players/' + myId).update({ isInvulnerable: false });
-                }, 3000); // 3 секунды неуязвимости
-                break;
-            case '🎸': // ГИТАРА - Звуковая Волна (АОЕ урон)
-                const vfxWave = document.createElement('div');
-                vfxWave.className = 'ability-vfx';
-                vfxWave.innerText = '🎶';
-                vfxWave.style.left = p.x + 'px';
-                vfxWave.style.top = p.y + 'px';
-                document.getElementById('arena').appendChild(vfxWave);
-                setTimeout(() => vfxWave.remove(), 800);
-
-                db.ref('players').once('value', (s) => {
-                    const players = s.val();
-                    for(let id in players) {
-                        if(id !== myId) {
-                            const target = players[id];
-                            const dist = Math.hypot(p.x - target.x, p.y - target.y);
-                            if(dist < 150 && !target.isInvulnerable) { // Радиус волны
-                                db.ref('players/' + id + '/hp').transaction(h => (h || 100) - 20);
-                            }
-                        }
-                    }
-                });
-                break;
-            case '🍌': // БАНАН - Банановая Ловушка (обездвиживание)
-                const peelX = p.x + 20;
-                const peelY = 380; // На уровне пола
-
-                const peelDiv = document.createElement('div');
-                peelDiv.className = 'banana-peel';
-                peelDiv.innerText = '🍌';
-                peelDiv.style.left = peelX + 'px';
-                peelDiv.style.top = peelY + 'px';
-                document.getElementById('arena').appendChild(peelDiv);
-
-                // Записываем кожуру в Firebase, чтобы другие игроки ее видели
-                db.ref('peels').push({ x: peelX, y: peelY, createdAt: firebase.database.ServerValue.TIMESTAMP });
-
-                setTimeout(() => {
-                    peelDiv.remove();
-                    // Удаляем кожуру из Firebase через 5 секунд
-                    db.ref('peels').orderByChild('createdAt').limitToLast(1).once('child_added', (snapshot) => {
-                        db.ref('peels/' + snapshot.key).remove();
-                    });
-                }, 5000);
-                break;
-        }
-    }
-
-    // ЛОГИКА БАНАНОВОЙ КОЖУРЫ (Нанесение оглушения)
-    db.ref('peels').on('child_added', (snapshot) => {
-        const peelData = snapshot.val();
-        const arena = document.getElementById('arena');
-        const peelDiv = document.createElement('div');
-        peelDiv.className = 'banana-peel';
-        peelDiv.innerText = '🍌';
-        peelDiv.style.left = peelData.x + 'px';
-        peelDiv.style.top = peelData.y + 'px';
-        arena.appendChild(peelDiv);
-
-        // Проверка столкновения с кожурой
-        db.ref('players').once('value', (s) => {
-            const players = s.val();
-            for (let idPlayer in players) {
-                const player = players[idPlayer];
-                const dist = Math.hypot(peelData.x - (player.x + 20), peelData.y - (player.y + 20));
-                if (dist < 50 && idPlayer !== myId && !player.isInvulnerable) { // Если игрок наступил на кожуру
-                    db.ref('players/' + idPlayer).update({ isStunned: true });
-                    setTimeout(() => {
-                        db.ref('players/' + idPlayer).update({ isStunned: false });
-                    }, 2000); // Оглушение на 2 секунды
-                }
-            }
-        });
-
-        // Удаляем визуал кожуры, когда она исчезает из базы
-        snapshot.ref.on('child_removed', () => {
-            peelDiv.remove();
-        });
-    });
-
-
-    // ОТРИСОВКА ИГРОКОВ
-    db.ref('players').on('value', (s) => {
-        if (!gameActive) return;
-        const arena = document.getElementById('arena');
-        arena.querySelectorAll('.player').forEach(el => el.remove());
-        arena.querySelectorAll('.weapon').forEach(el => el.remove());
+    function attack() {
+        if(!active || state.atk) return;
+        state.atk = true;
         
-        const players = s.val();
-        if(!players) return;
-
-        for(let id in players) {
-            const d = players[id];
-            
-            const pDiv = document.createElement('div');
-            pDiv.className = 'player' + (id === myId ? ' me' : '') + (d.isStunned ? ' stunned' : '') + (d.isInvulnerable ? ' invulnerable' : '');
-            pDiv.style.left = d.x + 'px'; 
-            pDiv.style.top = d.y + 'px';
-            
-            const wDiv = document.createElement('div');
-            wDiv.className = 'weapon' + (d.isAttacking ? ' attacking' : '');
-            wDiv.innerText = d.weapon;
-            wDiv.style.left = (d.x + 35) + 'px';
-            wDiv.style.top = (d.y + 5) + 'px';
-
-            pDiv.innerHTML = `
-                <div class="hp"><div class="hp-fill" style="width:${d.hp}%"></div></div>
-                <div class="name">${id}</div>
-            `;
-            
-            arena.appendChild(pDiv);
-            arena.appendChild(wDiv);
-            
-            if(d.hp <= 0 && id === myId) {
-                gameActive = false;
-                alert("ТЫ ПРОИГРАЛ! Выбери новое оружие.");
-                location.reload(); 
-            }
-        }
-    });
-
-    // ОБЫЧНАЯ АТАКА (ЛКМ)
-    function doAttack(e) {
-        if(!gameActive || p.isAttacking) return;
-        p.isAttacking = true;
-        db.ref('players/' + myId).update({ isAttacking: true });
-
-        db.ref('players').once('value', (s) => {
-            const players = s.val();
-            for(let id in players) {
+        db.ref('players').once('value', s => {
+            let all = s.val();
+            for(let id in all) {
                 if(id !== myId) {
-                    const target = players[id];
-                    const dist = Math.hypot(p.x - target.x, p.y - target.y);
-                    if(dist < 75 && !target.isInvulnerable) { 
+                    let enemy = all[id];
+                    let d = Math.hypot(state.x - enemy.x, state.y - enemy.y);
+                    if(d < 70 && !enemy.inv) {
                         db.ref('players/' + id + '/hp').transaction(h => (h || 100) - 10);
                     }
                 }
             }
         });
-
-        setTimeout(() => {
-            p.isAttacking = false;
-            db.ref('players/' + myId).update({ isAttacking: false });
-        }, 200);
+        setTimeout(() => { state.atk = false; }, 200);
     }
+
+    function useAbility() {
+        state.cd = 3000;
+        if(state.type === 'dash') {
+            state.x += (keys['KeyA'] ? -150 : 150);
+        } else if(state.type === 'shield') {
+            state.inv = true; setTimeout(() => state.inv = false, 2000);
+        } else if(state.type === 'shoot' || state.type === 'wave') {
+            db.ref('players').once('value', s => {
+                let all = s.val();
+                for(let id in all) {
+                    if(id !== myId) {
+                        let enemy = all[id];
+                        let d = Math.hypot(state.x - enemy.x, state.y - enemy.y);
+                        if(d < 200 && !enemy.inv) db.ref('players/' + id + '/hp').transaction(h => h - 20);
+                    }
+                }
+            });
+        }
+    }
+
+    db.ref('players').on('value', s => {
+        if(!active) return;
+        const arena = document.getElementById('arena');
+        arena.innerHTML = '';
+        let all = s.val();
+        for(let id in all) {
+            let d = all[id];
+            if(id === myId) state.hp = d.hp;
+            
+            let pDiv = document.createElement('div');
+            pDiv.className = `player ${id===myId?'me':''} ${d.inv?'inv':''} ${d.stun?'stun':''}`;
+            pDiv.style.left = d.x + 'px'; pDiv.style.top = d.y + 'px';
+            pDiv.innerHTML = `<div class="hp-bar"><div class="hp-fill" style="width:${d.hp}%"></div></div><div class="name-tag">${id}</div>`;
+            
+            let wDiv = document.createElement('div');
+            wDiv.className = `weapon-img ${d.atk?'attacking':''}`;
+            wDiv.innerText = d.wpn;
+            wDiv.style.left = (d.x + 35) + 'px'; wDiv.style.top = (d.y + 5) + 'px';
+            
+            arena.appendChild(pDiv); arena.appendChild(wDiv);
+
+            if(state.hp <= 0) { alert("GG! ТЫ ПРОИГРАЛ"); location.reload(); }
+        }
+    });
 </script>
 </body>
 </html>
