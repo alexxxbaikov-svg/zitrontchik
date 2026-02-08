@@ -2,175 +2,125 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zitron4ik | Pro Blog</title>
+    <title>ZITRON4IK | Realtime Blog</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        :root { 
-            --accent: #00ff41; 
-            --cooking: #ff4d4d; 
-            --bg: #0a0a0a; 
-            --card-bg: #161616; 
-            --text: #ffffff; 
-        }
-        
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 50px; transition: 0.3s; }
-        
-        header { padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; background: #000; border-bottom: 2px solid var(--accent); }
-        .logo { font-size: 1.5rem; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
-        .logo span { color: var(--accent); }
-
-        /* Палитра цветов */
-        .theme-selector { display: flex; gap: 8px; align-items: center; }
-        .color-dot { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; transition: 0.2s; }
-        .color-dot:hover { transform: scale(1.2); }
-
-        .admin-trigger { background: transparent; border: 1px solid #333; color: #555; cursor: pointer; padding: 5px 10px; border-radius: 5px; font-size: 12px; }
-
-        .controls { display: flex; justify-content: center; gap: 15px; padding: 30px; }
-        .filter-btn { padding: 10px 20px; border: 2px solid var(--accent); background: none; color: white; cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.3s; }
-        .filter-btn:hover { background: var(--accent); color: #000; }
-
-        .grid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; padding: 0 20px; }
-        .card { background: var(--card-bg); border-radius: 15px; border: 1px solid #222; overflow: hidden; display: flex; flex-direction: column; position: relative; }
-        
-        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; }
-        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
-        .card-content { padding: 20px; flex-grow: 1; }
-
-        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 10px; font-weight: bold; text-transform: uppercase; background: var(--accent); color: #000; }
-
-        /* Лайки и Комменты */
-        .actions-bar { display: flex; justify-content: flex-start; gap: 15px; padding: 10px 20px; background: #111; border-top: 1px solid #222; }
-        .like-btn { cursor: pointer; background: none; border: none; color: #fff; font-size: 1.1rem; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
-        .like-btn:hover { color: var(--cooking); transform: scale(1.1); }
-        .like-btn.active { color: var(--cooking); font-weight: bold; }
-
-        .comments-section { background: #0d0d0d; padding: 15px; border-top: 1px solid #222; }
-        .comment { margin-bottom: 8px; background: #1a1a1a; padding: 8px; border-radius: 5px; font-size: 0.85rem; border-left: 3px solid var(--accent); display: flex; justify-content: space-between; }
-
-        #adminPanel { display: none; max-width: 600px; margin: 20px auto; background: #1a1a1a; padding: 25px; border-radius: 12px; border: 2px solid var(--accent); }
-        input, textarea, select { width: 100%; margin-bottom: 12px; padding: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
-        .add-btn { background: var(--accent); color: black; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 6px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0a0a0a; color: white; padding: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        .logo { color: #00ff41; font-size: 30px; font-weight: bold; text-align: center; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
+        .card { background: #161616; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 20px; border-left: 5px solid #00ff41; transition: 0.3s; }
+        .card:hover { border-color: #00ff41; }
+        .btn { background: #00ff41; color: black; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn:hover { transform: scale(1.05); opacity: 0.9; }
+        .input { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
+        .comment { background: #0d0d0d; padding: 8px; margin-top: 5px; border-radius: 4px; font-size: 14px; color: #ccc; border-left: 2px solid #00ff41; }
+        #admin { display: none; background: #1a1a1a; padding: 20px; border-radius: 12px; margin-bottom: 30px; border: 1px dashed #00ff41; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo">ZITRON<span>4IK</span></div>
-        <div class="theme-selector">
-            <div class="color-dot" style="background:#00ff41" onclick="setTheme('#00ff41')"></div>
-            <div class="color-dot" style="background:#ff4d4d" onclick="setTheme('#ff4d4d')"></div>
-            <div class="color-dot" style="background:#00d4ff" onclick="setTheme('#00d4ff')"></div>
-            <div class="color-dot" style="background:#a020f0" onclick="setTheme('#a020f0')"></div>
-            <button class="admin-trigger" onclick="login()" id="loginBtn" style="margin-left:10px">Admin</button>
-        </div>
-    </header>
+<div class="container">
+    <div class="logo">ZITRON4IK BLOG</div>
 
-    <div class="controls">
-        <button class="filter-btn" onclick="filter('all')">Все</button>
-        <button class="filter-btn" onclick="filter('cook')">Кухня</button>
-        <button class="filter-btn" onclick="filter('game')">Игры</button>
+    <center><button onclick="login()" style="background:none; border:none; color:#333; cursor:pointer; margin-bottom: 20px;">[ Вход Шефа ]</button></center>
+
+    <div id="admin">
+        <h3 style="margin-top:0; color:#00ff41;">Новый крафт</h3>
+        <input id="t" class="input" placeholder="Заголовок (например: Как приготовить алмазную кирку)">
+        <textarea id="txt" class="input" rows="3" placeholder="Текст поста..."></textarea>
+        <button class="btn" onclick="add()">ОПУБЛИКОВАТЬ В ОБЛАКО</button>
     </div>
 
-    <div id="adminPanel">
-        <input type="text" id="postTitle" placeholder="Заголовок">
-        <textarea id="postText" rows="4" placeholder="Текст..."></textarea>
-        <input type="text" id="videoUrl" placeholder="Ссылка на YouTube">
-        <select id="postType">
-            <option value="cook">Кухня</option>
-            <option value="game">Игры</option>
-        </select>
-        <button class="add-btn" onclick="addPost()">Опубликовать</button>
-    </div>
+    <div id="posts"></div>
+</div>
 
-    <div class="grid" id="mainGrid"></div>
+<script>
+    // ТВОИ НАСТРОЙКИ (ПОЛНОСТЬЮ ГОТОВЫ)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAadX10zi4a5dA9VqR80RVhcTtiBjwqdms",
+        authDomain: "zitron-blog.firebaseapp.com",
+        projectId: "zitron-blog",
+        databaseURL: "https://zitron-blog-default-rtdb.firebaseio.com/"
+    };
 
-    <script>
-        let posts = JSON.parse(localStorage.getItem('mySitePosts')) || [
-            { id: 1, title: "Добро пожаловать!", text: "Выбирай цвет сайта вверху!", type: "game", video: null, likes: 0, comments: [] }
-        ];
-        let isAdmin = false;
+    // Запуск базы данных
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        // Смена темы
-        function setTheme(color) {
-            document.documentElement.style.setProperty('--accent', color);
-            localStorage.setItem('siteTheme', color);
+    // Вход для тебя
+    function login() { 
+        if(prompt("Введи секретный код:") === "zitron4ik2015") {
+            document.getElementById('admin').style.display = 'block';
+            alert("Привет, Шеф! Панель открыта.");
+        }
+    }
+
+    // Добавление поста в облако Google
+    function add() {
+        const title = document.getElementById('t').value;
+        const text = document.getElementById('txt').value;
+        if(title && text) {
+            db.ref('posts').push({ 
+                title: title, 
+                text: text, 
+                likes: 0,
+                time: Date.now() 
+            });
+            document.getElementById('t').value = ''; 
+            document.getElementById('txt').value = '';
+        } else {
+            alert("Заполни заголовок и текст!");
+        }
+    }
+
+    // Лайк (обновляется у всех сразу)
+    function like(id) { 
+        db.ref('posts/' + id + '/likes').transaction(c => (c || 0) + 1); 
+    }
+
+    // Комментарий (видят все)
+    function comm(id) {
+        const i = document.getElementById('in'+id);
+        if(i.value) { 
+            db.ref('posts/' + id + '/comments').push(i.value); 
+            i.value = ''; 
+        }
+    }
+
+    // ГЛАВНАЯ МАГИЯ: Получение данных в реальном времени
+    db.ref('posts').on('value', (s) => {
+        const div = document.getElementById('posts');
+        div.innerHTML = '';
+        const data = s.val();
+        if(!data) {
+            div.innerHTML = '<p style="text-align:center; color:#555;">Постов пока нет. Зайди как админ и напиши первый!</p>';
+            return;
         }
 
-        // Загрузка темы
-        const savedTheme = localStorage.getItem('siteTheme');
-        if (savedTheme) setTheme(savedTheme);
-
-        function login() {
-            if (prompt("Код:") === "zitron4ik2015") {
-                isAdmin = true;
-                document.getElementById('adminPanel').style.display = 'block';
-                renderPosts();
-            }
-        }
-
-        function addPost() {
-            const title = document.getElementById('postTitle').value;
-            const text = document.getElementById('postText').value;
-            const type = document.getElementById('postType').value;
-            let video = document.getElementById('videoUrl').value;
-            if (!title) return;
-
-            let vId = video.includes('v=') ? video.split('v=')[1].split('&')[0] : (video.includes('youtu.be/') ? video.split('youtu.be/')[1] : null);
-
-            posts.unshift({ id: Date.now(), title, text, type, video: vId, likes: 0, comments: [] });
-            save();
-        }
-
-        function toggleLike(id) {
-            const post = posts.find(p => p.id === id);
-            post.likes++;
-            save();
-        }
-
-        function addComment(id) {
-            const inp = document.getElementById(`in-${id}`);
-            if (!inp.value) return;
-            posts.find(p => p.id === id).comments.push(inp.value);
-            save();
-        }
-
-        function save() {
-            localStorage.setItem('mySitePosts', JSON.stringify(posts));
-            renderPosts();
-        }
-
-        function filter(t) { renderPosts(t); }
-
-        function renderPosts(f = 'all') {
-            const grid = document.getElementById('mainGrid');
-            grid.innerHTML = '';
-            posts.forEach(p => {
-                if (f !== 'all' && p.type !== f) return;
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    ${p.video ? `<div class="video-container"><iframe src="https://www.youtube.com/embed/${p.video}"></iframe></div>` : ''}
-                    <div class="card-content">
-                        <span class="tag">${p.type}</span>
-                        <h3>${p.title}</h3>
-                        <p>${p.text}</p>
-                    </div>
-                    <div class="actions-bar">
-                        <button class="like-btn" onclick="toggleLike(${p.id})">❤️ ${p.likes}</button>
-                    </div>
-                    <div class="comments-section">
-                        ${p.comments.map(c => `<div class="comment"><span>${c}</span></div>`).join('')}
-                        <div style="display:flex; gap:5px; margin-top:10px">
-                            <input type="text" id="in-${p.id}" placeholder="Коммент..." style="margin:0; padding:5px; flex-grow:1">
-                            <button onclick="addComment(${p.id})" style="background:var(--accent); border:none; border-radius:4px; cursor:pointer">OK</button>
+        // Выводим посты (новые сверху)
+        Object.keys(data).reverse().forEach(key => {
+            const p = data[key];
+            div.innerHTML += `
+                <div class="card">
+                    <h2 style="margin-top:0;">${p.title}</h2>
+                    <p style="white-space: pre-wrap;">${p.text}</p>
+                    <button class="btn" onclick="like('${key}')">❤️ ${p.likes || 0}</button>
+                    
+                    <div style="margin-top:20px;">
+                        <b style="font-size:12px; color:#555;">КОММЕНТАРИИ:</b>
+                        <div id="list-${key}">
+                            ${p.comments ? Object.values(p.comments).map(c => `<div class="comment">${c}</div>`).join('') : '<div style="color:#333; font-size:12px;">Пока пусто...</div>'}
                         </div>
                     </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-        renderPosts();
-    </script>
+
+                    <div style="display:flex; gap:5px; margin-top:10px">
+                        <input id="in${key}" class="input" style="margin:0; padding:8px;" placeholder="Твой коммент...">
+                        <button class="btn" style="padding:5px 15px;" onclick="comm('${key}')">OK</button>
+                    </div>
+                </div>`;
+        });
+    });
+</script>
 </body>
 </html>
