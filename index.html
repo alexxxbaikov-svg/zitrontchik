@@ -2,204 +2,100 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>ZITRONTCHIK | HUB & ARENA</title>
+    <title>ZITRONTCHIK | ARENA</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        :root { --accent: #00ff41; --danger: #ff4d4d; }
-        body { font-family: 'Segoe UI', sans-serif; background: #0a0a0a; color: white; margin: 0; padding: 20px; overflow-x: hidden; }
-        .container { max-width: 700px; margin: auto; }
-        
-        /* ВКЛАДКИ */
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
-        .tab-btn { padding: 10px 25px; border: 2px solid var(--accent); background: none; color: white; cursor: pointer; border-radius: 8px; font-weight: bold; text-transform: uppercase; }
-        .tab-btn.active { background: var(--accent); color: black; }
-        .tab-btn.pvp-tab { border-color: var(--danger); color: var(--danger); }
-        .tab-btn.pvp-tab.active { background: var(--danger); color: white; }
-
-        /* ОКНО PVP */
-        #pvpWindow { display: none; background: #000; border: 3px solid var(--danger); border-radius: 15px; width: 100%; height: 500px; position: relative; overflow: hidden; cursor: crosshair; }
-        .player { position: absolute; width: 45px; height: 45px; background: var(--accent); border-radius: 8px; transition: 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .hp-bar { width: 40px; height: 6px; background: #333; border: 1px solid #000; position: absolute; top: -12px; border-radius: 3px; }
-        .hp-fill { height: 100%; background: #00ff00; transition: 0.2s; }
-        .p-name { font-size: 10px; font-weight: bold; color: white; margin-top: 2px; text-shadow: 1px 1px 2px black; }
-        .weapon-vfx { position: absolute; font-size: 24px; pointer-events: none; animation: fly 0.4s forwards; }
-        @keyframes fly { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(2) translateY(-20px); } }
-
-        /* СТАРЫЙ ДОБРЫЙ БЛОГ */
-        .card { background: #161616; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 20px; border-left: 5px solid var(--accent); }
-        .br-card { border-left-color: var(--danger); background: #1a0a0a; }
-        .btn { background: var(--accent); color: black; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .input { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
-        #admin { display: none; background: #1a1a1a; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 2px solid var(--accent); }
-        
-        #lockScreen { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:black; color:red; flex-direction:column; justify-content:center; align-items:center; z-index:9999; }
+        body { font-family: sans-serif; background: #000; color: #0f0; text-align: center; margin: 0; }
+        #arena { background: #111; border: 3px solid #f00; width: 100%; height: 400px; position: relative; overflow: hidden; margin: 20px auto; max-width: 800px; }
+        .player { position: absolute; width: 40px; height: 40px; border-radius: 5px; background: #0f0; transition: 0.1s; }
+        .player.me { background: #00f; border: 2px solid #fff; box-shadow: 0 0 15px #00f; z-index: 10; }
+        .hp { width: 40px; height: 5px; background: #333; position: absolute; top: -10px; }
+        .hp-fill { height: 100%; background: #0f0; }
+        .name { font-size: 10px; position: absolute; top: -25px; width: 100px; left: -30px; color: #fff; }
+        .btn { background: #0f0; color: #000; padding: 20px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 20px; margin: 20px; }
     </style>
 </head>
 <body>
-
-<div id="lockScreen">
-    <h1>⚠️ САЙТ ЗАБЛОКИРОВАН</h1>
-    <input type="password" id="recoveryCode" class="input" style="width:250px" placeholder="Запасной код">
-    <button class="btn" onclick="unlockSite()">ОТКРЫТЬ</button>
-</div>
-
-<div class="container" id="mainApp">
-    <div style="text-align:center; color:var(--accent); font-size:40px; font-weight:bold; margin-bottom:10px;">ZITRONTCHIK</div>
-
-    <div class="tabs">
-        <button class="tab-btn active" id="btnBlog" onclick="showTab('blog')">Новости</button>
-        <button class="tab-btn pvp-tab" id="btnPvp" onclick="showTab('pvp')">PVP АРЕНА</button>
-    </div>
-
-    <div id="blogTab">
-        <center><button onclick="login()" style="background:none; border:none; color:#1a1a1a; cursor:pointer; margin-bottom:10px;">[ Админ ]</button></center>
-        <div id="admin">
-            <h3>Запланировать Битву</h3>
-            <input id="bTitle" class="input" placeholder="Название битвы">
-            <input id="bTime" class="input" placeholder="Время (18:34)">
-            <input id="bWeapon" class="input" placeholder="Смешное оружие (Эмодзи или текст)">
-            <button class="btn" onclick="createBattle()">ОПУБЛИКОВАТЬ АНОНС</button>
-        </div>
-        <div id="posts"></div>
-    </div>
-
-    <div id="pvpTab" style="display:none;">
-        <div style="text-align:center; color:var(--danger); font-weight:bold; margin-bottom:10px;">🔥 СЕЙЧАС В БОЮ 🔥</div>
-        <div id="pvpWindow" onclick="doAttack(event)">
-            <div id="respawnUI" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; z-index:100;">
-                <h2 style="color:red">ТЫ ВЫЛЕТЕЛ!</h2>
-                <button class="btn" onclick="spawnPlayer()">ВОЙТИ В БОЙ</button>
-            </div>
-        </div>
-        <p style="font-size:12px; color:#555; text-align:center; margin-top:10px;">Управление: Мышка/Тач — движение. Клик по игроку — удар!</p>
-    </div>
-</div>
+    <h1>ZITRONTCHIK ARENA</h1>
+    <div id="arena" onclick="hit(event)"></div>
+    <button class="btn" onclick="start()">ВОЙТИ В БОЙ</button>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyAadX10zi4a5dA9VqR80RVhcTtiBjwqdms",
-        authDomain: "zitron-blog.firebaseapp.com",
-        projectId: "zitron-blog",
-        databaseURL: "https://zitron-blog-default-rtdb.firebaseio.com/"
+    // ТВОЙ КОНФИГ (Настроен под скриншот №7)
+    const config = {
+        databaseURL: "https://zitron-blog-default-rtdb.firebaseio.com",
+        projectId: "zitron-blog"
     };
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(config);
     const db = firebase.database();
 
-    let myName = localStorage.getItem('zitrontchik_user') || "Боец_" + Math.floor(Math.random()*99);
-    let myHP = 100;
-    let currentWeapon = "🍋";
+    let id = "Zitron_" + Math.floor(Math.random()*99);
+    let p = { x: 100, y: 350, vy: 0, hp: 100 };
+    let keys = {};
 
-    // СИСТЕМА ВКЛАДОК
-    function showTab(tab) {
-        document.getElementById('blogTab').style.display = tab === 'blog' ? 'block' : 'none';
-        document.getElementById('pvpTab').style.display = tab === 'pvp' ? 'block' : 'none';
-        document.getElementById('btnBlog').classList.toggle('active', tab === 'blog');
-        document.getElementById('btnPvp').classList.toggle('active', tab === 'pvp');
-        if(tab === 'pvp') spawnPlayer();
-        else db.ref('arenaPlayers/' + myName).remove();
+    function start() {
+        db.ref('players/' + id).set(p);
+        db.ref('players/' + id).onDisconnect().remove();
+        console.log("Игрок создан в базе!");
     }
 
-    // ЛОГИКА АРЕНЫ
-    function spawnPlayer() {
-        myHP = 100;
-        document.getElementById('respawnUI').style.display = 'none';
-        db.ref('arenaPlayers/' + myName).set({ x: 100, y: 100, hp: 100 });
-        db.ref('arenaPlayers/' + myName).onDisconnect().remove();
-    }
+    window.onkeydown = (e) => keys[e.code] = true;
+    window.onkeyup = (e) => keys[e.code] = false;
 
-    document.getElementById('pvpWindow').onmousemove = (e) => {
-        const rect = pvpWindow.getBoundingClientRect();
-        if(myHP > 0) {
-            db.ref('arenaPlayers/' + myName).update({
-                x: e.clientX - rect.left - 20,
-                y: e.clientY - rect.top - 20
-            });
+    // Игровой цикл
+    setInterval(() => {
+        if (keys['KeyA']) p.x -= 7;
+        if (keys['KeyD']) p.x += 7;
+        if (keys['Space'] && p.y >= 350) p.vy = -15;
+        
+        p.vy += 0.8; 
+        p.y += p.vy;
+
+        if (p.y > 350) { p.y = 350; p.vy = 0; }
+        if (p.x < 0) p.x = 0;
+        if (p.x > 760) p.x = 760;
+
+        // Отправляем координаты в Firebase только если мы в игре
+        db.ref('players/' + id).update({ x: p.x, y: p.y, hp: p.hp });
+    }, 30);
+
+    // Отрисовка всех игроков
+    db.ref('players').on('value', (s) => {
+        const arena = document.getElementById('arena');
+        arena.querySelectorAll('.player').forEach(el => el.remove());
+        const data = s.val();
+        if(!data) return;
+
+        for(let name in data) {
+            const d = data[name];
+            const div = document.createElement('div');
+            div.className = 'player' + (name === id ? ' me' : '');
+            div.style.left = d.x + 'px'; 
+            div.style.top = d.y + 'px';
+            div.innerHTML = `
+                <div class="hp"><div class="hp-fill" style="width:${d.hp}%"></div></div>
+                <div class="name">${name}</div>
+            `;
+            arena.appendChild(div);
         }
-    };
+    });
 
-    function doAttack(e) {
-        const weaponVfx = document.createElement('div');
-        weaponVfx.className = 'weapon-vfx';
-        weaponVfx.innerText = currentWeapon;
-        weaponVfx.style.left = (e.offsetX - 10) + 'px';
-        weaponVfx.style.top = (e.offsetY - 10) + 'px';
-        pvpWindow.appendChild(weaponVfx);
-        setTimeout(() => weaponVfx.remove(), 400);
-
-        // Проверка попадания по другим
-        db.ref('arenaPlayers').once('value', (s) => {
-            const players = s.val();
-            Object.keys(players).forEach(name => {
-                if(name !== myName) {
-                    const p = players[name];
-                    const dist = Math.hypot(e.offsetX - (p.x+20), e.offsetY - (p.y+20));
-                    if(dist < 40) {
-                        db.ref('arenaPlayers/' + name + '/hp').transaction(h => (h || 100) - 10);
+    // Функция атаки
+    function hit(e) {
+        db.ref('players').once('value', (s) => {
+            const data = s.val();
+            for(let name in data) {
+                if(name !== id) {
+                    const target = data[name];
+                    const dist = Math.hypot(e.offsetX - (target.x+20), e.offsetY - (target.y+20));
+                    if(dist < 50) {
+                        db.ref('players/' + name + '/hp').transaction(h => (h || 100) - 10);
                     }
                 }
-            });
-        });
-    }
-
-    db.ref('arenaPlayers').on('value', (s) => {
-        const players = s.val();
-        const win = document.getElementById('pvpWindow');
-        win.querySelectorAll('.player').forEach(p => p.remove());
-        
-        if(!players) return;
-        Object.keys(players).forEach(name => {
-            const p = players[name];
-            if(name === myName) {
-                myHP = p.hp;
-                if(myHP <= 0) {
-                    document.getElementById('respawnUI').style.display = 'block';
-                    db.ref('arenaPlayers/' + myName).remove();
-                }
             }
-            const pDiv = document.createElement('div');
-            pDiv.className = 'player';
-            pDiv.style.left = p.x + 'px'; pDiv.style.top = p.y + 'px';
-            pDiv.innerHTML = `
-                <div class="hp-bar"><div class="hp-fill" style="width:${p.hp}%"></div></div>
-                <div class="p-name">${name}</div>
-            `;
-            win.appendChild(pDiv);
         });
-    });
-
-    // БЛОГ И АДМИНКА
-    function login() { if(prompt("Пароль:") === "zitron4ik2015") document.getElementById('admin').style.display = 'block'; }
-    
-    function createBattle() {
-        const title = document.getElementById('bTitle').value;
-        const time = document.getElementById('bTime').value;
-        const weapon = document.getElementById('bWeapon').value;
-        db.ref('posts').push({ title, time, weapon, type: 'battle' });
     }
-
-    db.ref('posts').on('value', (s) => {
-        const div = document.getElementById('posts'); div.innerHTML = '';
-        const data = s.val(); if(!data) return;
-        Object.keys(data).reverse().forEach(k => {
-            const p = data[k];
-            div.innerHTML += `
-                <div class="card ${p.type === 'battle' ? 'br-card' : ''}">
-                    <h2 style="margin:0">${p.title}</h2>
-                    ${p.time ? `<p style="color:var(--danger)">⏰ СТАРТ: ${p.time}</p>` : ''}
-                    ${p.weapon ? `<p>⚔️ ОРУЖИЕ: ${p.weapon}</p>` : ''}
-                    <button class="btn" style="width:100%" onclick="showTab('pvp')">ПЕРЕЙТИ НА АРЕНУ</button>
-                </div>`;
-        });
-    });
-
-    // ТВОЯ ЗАЩИТА (RESTPLAY2015)
-    db.ref('siteSettings/isLocked').on('value', (s) => {
-        const locked = s.val() === true;
-        document.getElementById('lockScreen').style.display = locked ? 'flex' : 'none';
-        document.getElementById('mainApp').style.display = locked ? 'none' : 'block';
-    });
-    function unlockSite() { if(document.getElementById('recoveryCode').value === "restplay2015") db.ref('siteSettings/isLocked').set(false); }
 </script>
 </body>
 </html>
