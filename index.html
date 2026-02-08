@@ -2,173 +2,164 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>ZITRONTCHIK | ARENA ULTIMATE</title>
+    <title>ZITRON ARENA | FIXED PVP</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #000; color: #0f0; text-align: center; margin: 0; user-select: none; overflow: hidden; }
+        body { font-family: 'Arial', sans-serif; background: #050505; color: #0f0; text-align: center; margin: 0; overflow: hidden; user-select: none; }
+        #lobby { padding: 50px; }
+        .weapon-btn { background: #111; border: 2px solid #0f0; color: white; padding: 20px; margin: 10px; cursor: pointer; border-radius: 10px; display: inline-block; width: 150px; }
+        .weapon-btn:hover { background: #0f0; color: black; }
         
-        /* ЛОББИ */
-        #lobby { padding: 40px; display: block; }
-        .weapon-select { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
-        .weapon-btn { background: #111; border: 2px solid #0f0; border-radius: 12px; padding: 15px; cursor: pointer; transition: 0.3s; width: 140px; }
-        .weapon-btn:hover { background: #0f0; transform: scale(1.05); color: #000; }
-        .weapon-btn span { font-size: 40px; display: block; }
-        .weapon-btn p { font-size: 11px; color: #aaa; }
-
-        /* АРЕНА */
-        #arena { background: #0a0a0a; border: 4px solid #f00; width: 100%; height: 450px; position: relative; overflow: hidden; margin: 10px auto; max-width: 900px; display: none; }
+        #arena { background: #111; border: 5px solid #f00; width: 95vw; height: 70vh; margin: 10px auto; position: relative; overflow: hidden; display: none; }
         
-        /* ИГРОКИ */
-        .player { position: absolute; width: 40px; height: 40px; border-radius: 8px; background: #0f0; transition: top 0.1s linear, left 0.1s linear; }
-        .player.me { background: #00f; border: 2px solid #fff; box-shadow: 0 0 15px #00f; z-index: 10; }
-        .player.invul { filter: brightness(2) drop-shadow(0 0 10px #fff); }
-        .player.stun { opacity: 0.5; filter: grayscale(1); }
-
-        .weapon-img { position: absolute; font-size: 24px; pointer-events: none; transition: 0.1s; }
-        .attacking { animation: strike 0.2s; }
-        @keyframes strike { 0% { transform: scale(1); } 50% { transform: scale(2) rotate(-20deg); } 100% { transform: scale(1); } }
-
-        /* UI */
-        .hp-bar { width: 40px; height: 6px; background: #333; position: absolute; top: -12px; border: 1px solid #000; }
-        .hp-fill { height: 100%; background: #0f0; }
-        .name-tag { font-size: 10px; position: absolute; top: -26px; width: 100px; left: -30px; color: #fff; }
+        .player { position: absolute; width: 40px; height: 40px; border-radius: 8px; transition: 0.05s linear; }
+        .player.me { background: #00f; border: 2px solid #fff; box-shadow: 0 0 15px #00f; }
+        .player.enemy { background: #f00; border: 2px solid #ff4d4d; }
         
-        #ability-hud { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: none; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 20px; border: 1px solid #0f0; }
-        #cd-box { width: 100px; height: 10px; background: #222; margin-left: 10px; border-radius: 5px; overflow: hidden; display: inline-block; }
-        #cd-fill { height: 100%; width: 0%; background: #0f0; }
+        .hp-container { width: 50px; height: 6px; background: #333; position: absolute; top: -15px; left: -5px; border-radius: 3px; }
+        .hp-bar { height: 100%; background: #0f0; transition: width 0.2s; }
+        .name { position: absolute; top: -30px; width: 100px; left: -30px; font-size: 10px; color: white; }
+        .weapon-icon { position: absolute; font-size: 25px; pointer-events: none; z-index: 20; }
+        
+        .atk-anim { animation: swipe 0.2s ease-in-out; }
+        @keyframes swipe { 0% { transform: scale(1); } 50% { transform: scale(1.8) rotate(30deg); } 100% { transform: scale(1); } }
+        
+        #hud { display: none; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="lobby">
-        <h1 style="text-shadow: 0 0 10px #0f0;">🍋 ZITRON ARENA ⚔️</h1>
-        <h3>ВЫБЕРИ ОРУЖИЕ ДЛЯ БОЯ:</h3>
-        <div class="weapon-select">
-            <div class="weapon-btn" onclick="join('🗡️', 'dash')"><span>🗡️</span><b>МЕЧ</b><p>F: Рывок вперед</p></div>
-            <div class="weapon-btn" onclick="join('🍋', 'shoot')"><span>🍋</span><b>ЛИМОН</b><p>F: Дальний выстрел</p></div>
-            <div class="weapon-btn" onclick="join('🥖', 'shield')"><span>🥖</span><b>БАГЕТ</b><p>F: Щит (3 сек)</p></div>
-            <div class="weapon-btn" onclick="join('🎸', 'wave')"><span>🎸</span><b>ГИТАРА</b><p>F: Звуковой удар</p></div>
-        </div>
+        <h1>🍋 ZITRON BATTLE ⚔️</h1>
+        <div class="weapon-btn" onclick="enterGame('🗡️')">МЕЧ 🗡️</div>
+        <div class="weapon-btn" onclick="enterGame('🥖')">БАГЕТ 🥖</div>
+        <div class="weapon-btn" onclick="enterGame('🍋')">ЛИМОН 🍋</div>
+        <div class="weapon-btn" onclick="enterGame('🎸')">ГИТАРА 🎸</div>
     </div>
 
-    <div id="arena" onmousedown="attack()"></div>
-    
-    <div id="ability-hud">
-        <span id="cur-wpn"></span> [F] <div id="cd-box"><div id="cd-fill"></div></div>
-    </div>
+    <div id="hud">HP: <span id="myHpText">100</span> | Оружие: <span id="myWpnText">-</span></div>
+    <div id="arena" onmousedown="performAttack()"></div>
 
 <script>
-    const config = {
+    const firebaseConfig = {
         databaseURL: "https://zitron-blog-default-rtdb.firebaseio.com",
         projectId: "zitron-blog"
     };
-    firebase.initializeApp(config);
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let myId = "User_" + Math.floor(Math.random()*999);
-    let state = { x: 200, y: 350, vy: 0, hp: 100, wpn: '🗡️', type: '', atk: false, inv: false, stun: false, cd: 0 };
+    let myId = "Player_" + Math.floor(Math.random() * 1000);
+    let myData = { x: 100, y: 300, vy: 0, hp: 100, wpn: '🗡️', atk: false };
     let keys = {};
-    let active = false;
+    let isPlaying = false;
 
-    function join(emoji, type) {
-        state.wpn = emoji; state.type = type;
+    function enterGame(weapon) {
+        myData.wpn = weapon;
         document.getElementById('lobby').style.display = 'none';
         document.getElementById('arena').style.display = 'block';
-        document.getElementById('ability-hud').style.display = 'block';
-        document.getElementById('cur-wpn').innerText = emoji;
-        active = true;
-        db.ref('players/' + myId).set(state);
+        document.getElementById('hud').style.display = 'block';
+        document.getElementById('myWpnText').innerText = weapon;
+        isPlaying = true;
+
+        // Создаем запись
+        db.ref('players/' + myId).set(myData);
         db.ref('players/' + myId).onDisconnect().remove();
     }
 
-    window.onkeydown = e => { 
-        keys[e.code] = true; 
-        if(e.code === 'KeyF' && state.cd <= 0) useAbility();
-    };
+    window.onkeydown = e => keys[e.code] = true;
     window.onkeyup = e => keys[e.code] = false;
 
-    // ГЛАВНЫЙ ЦИКЛ
+    // Движение и физика
     setInterval(() => {
-        if(!active || state.stun) return;
+        if (!isPlaying) return;
 
-        if(keys['KeyA']) state.x -= 7;
-        if(keys['KeyD']) state.x += 7;
-        if(keys['Space'] && state.y >= 350) state.vy = -15;
+        if (keys['KeyA']) myData.x -= 8;
+        if (keys['KeyD']) myData.x += 8;
+        if (keys['Space'] && myData.y >= 350) myData.vy = -16;
 
-        state.vy += 0.8; state.y += state.vy;
-        if(state.y > 350) { state.y = 350; state.vy = 0; }
-        if(state.x < 0) state.x = 0; if(state.x > 850) state.x = 850;
+        myData.vy += 0.8;
+        myData.y += myData.vy;
 
-        if(state.cd > 0) {
-            state.cd -= 50;
-            document.getElementById('cd-fill').style.width = (state.cd / 3000 * 100) + "%";
-        }
+        if (myData.y > 350) { myData.y = 350; myData.vy = 0; }
+        if (myData.x < 0) myData.x = 0;
+        if (myData.x > 800) myData.x = 800;
 
-        db.ref('players/' + myId).update({ x: state.x, y: state.y, hp: state.hp, atk: state.atk, inv: state.inv, stun: state.stun });
-    }, 50);
+        // Отправляем в базу ТОЛЬКО координаты и оружие (не трогаем HP!)
+        db.ref('players/' + myId).update({
+            x: myData.x,
+            y: myData.y,
+            wpn: myData.wpn,
+            atk: myData.atk
+        });
+    }, 40);
 
-    function attack() {
-        if(!active || state.atk) return;
-        state.atk = true;
+    // Атака
+    function performAttack() {
+        if (!isPlaying || myData.atk) return;
+        myData.atk = true;
         
-        db.ref('players').once('value', s => {
-            let all = s.val();
-            for(let id in all) {
-                if(id !== myId) {
-                    let enemy = all[id];
-                    let d = Math.hypot(state.x - enemy.x, state.y - enemy.y);
-                    if(d < 70 && !enemy.inv) {
-                        db.ref('players/' + id + '/hp').transaction(h => (h || 100) - 10);
+        db.ref('players').once('value', snapshot => {
+            const players = snapshot.val();
+            for (let id in players) {
+                if (id !== myId) {
+                    const enemy = players[id];
+                    const dist = Math.hypot(myData.x - enemy.x, myData.y - enemy.y);
+                    if (dist < 80) {
+                        // Наносим урон через транзакцию — это убивает ХИЛ
+                        db.ref('players/' + id + '/hp').transaction(hp => (hp || 100) - 15);
                     }
                 }
             }
         });
-        setTimeout(() => { state.atk = false; }, 200);
+
+        setTimeout(() => { myData.atk = false; }, 300);
     }
 
-    function useAbility() {
-        state.cd = 3000;
-        if(state.type === 'dash') {
-            state.x += (keys['KeyA'] ? -150 : 150);
-        } else if(state.type === 'shield') {
-            state.inv = true; setTimeout(() => state.inv = false, 2000);
-        } else if(state.type === 'shoot' || state.type === 'wave') {
-            db.ref('players').once('value', s => {
-                let all = s.val();
-                for(let id in all) {
-                    if(id !== myId) {
-                        let enemy = all[id];
-                        let d = Math.hypot(state.x - enemy.x, state.y - enemy.y);
-                        if(d < 200 && !enemy.inv) db.ref('players/' + id + '/hp').transaction(h => h - 20);
-                    }
-                }
-            });
-        }
-    }
-
-    db.ref('players').on('value', s => {
-        if(!active) return;
+    // Слушаем базу данных для отрисовки
+    db.ref('players').on('value', snapshot => {
+        if (!isPlaying) return;
         const arena = document.getElementById('arena');
+        const players = snapshot.val();
+        
+        // Очистка старых объектов
         arena.innerHTML = '';
-        let all = s.val();
-        for(let id in all) {
-            let d = all[id];
-            if(id === myId) state.hp = d.hp;
-            
-            let pDiv = document.createElement('div');
-            pDiv.className = `player ${id===myId?'me':''} ${d.inv?'inv':''} ${d.stun?'stun':''}`;
-            pDiv.style.left = d.x + 'px'; pDiv.style.top = d.y + 'px';
-            pDiv.innerHTML = `<div class="hp-bar"><div class="hp-fill" style="width:${d.hp}%"></div></div><div class="name-tag">${id}</div>`;
-            
-            let wDiv = document.createElement('div');
-            wDiv.className = `weapon-img ${d.atk?'attacking':''}`;
-            wDiv.innerText = d.wpn;
-            wDiv.style.left = (d.x + 35) + 'px'; wDiv.style.top = (d.y + 5) + 'px';
-            
-            arena.appendChild(pDiv); arena.appendChild(wDiv);
 
-            if(state.hp <= 0) { alert("GG! ТЫ ПРОИГРАЛ"); location.reload(); }
+        for (let id in players) {
+            const d = players[id];
+            
+            // Если это я, обновляем мое локальное HP
+            if (id === myId) {
+                myData.hp = d.hp;
+                document.getElementById('myHpText').innerText = d.hp;
+                if (d.hp <= 0) {
+                    alert("ВАС ПОБЕДИЛИ!");
+                    db.ref('players/' + myId).update({hp: 100});
+                    location.reload();
+                }
+            }
+
+            // Рисуем игрока
+            const pDiv = document.createElement('div');
+            pDiv.className = 'player ' + (id === myId ? 'me' : 'enemy');
+            pDiv.style.left = d.x + 'px';
+            pDiv.style.top = d.y + 'px';
+            
+            // HP полоска
+            pDiv.innerHTML = `
+                <div class="hp-container"><div class="hp-bar" style="width:${d.hp}%"></div></div>
+                <div class="name">${id}</div>
+            `;
+
+            // Оружие
+            const wDiv = document.createElement('div');
+            wDiv.className = 'weapon-icon' + (d.atk ? ' atk-anim' : '');
+            wDiv.innerText = d.wpn;
+            wDiv.style.left = (d.x + 35) + 'px';
+            wDiv.style.top = (d.y + 5) + 'px';
+
+            arena.appendChild(pDiv);
+            arena.appendChild(wDiv);
         }
     });
 </script>
