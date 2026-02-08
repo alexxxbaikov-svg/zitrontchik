@@ -2,49 +2,63 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>ZITRON ARENA | ABILITIES FIXED</title>
+    <title>ZITRON ARENA | MEGA EFFECTS</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #050505; color: #0f0; text-align: center; margin: 0; overflow: hidden; user-select: none; }
-        #lobby { padding: 50px; }
-        .weapon-btn { background: #111; border: 2px solid #0f0; color: white; padding: 15px; margin: 10px; cursor: pointer; border-radius: 10px; display: inline-block; width: 160px; }
-        .weapon-btn:hover { background: #0f0; color: black; transform: scale(1.1); }
-        .weapon-btn p { font-size: 10px; color: #aaa; margin: 5px 0 0; }
+        body { font-family: 'Verdana', sans-serif; background: #000; color: #0f0; text-align: center; margin: 0; overflow: hidden; user-select: none; }
+        #lobby { padding: 50px; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); height: 100vh; }
+        .weapon-btn { background: #111; border: 2px solid #0f0; color: white; padding: 20px; margin: 10px; cursor: pointer; border-radius: 15px; display: inline-block; width: 180px; transition: 0.3s; }
+        .weapon-btn:hover { background: #0f0; color: black; transform: translateY(-10px); box-shadow: 0 0 20px #0f0; }
         
-        #arena { background: #111; border: 5px solid #f00; width: 95vw; height: 70vh; margin: 10px auto; position: relative; overflow: hidden; display: none; }
+        #arena { background: #111; border: 5px solid #333; width: 95vw; height: 75vh; margin: 10px auto; position: relative; overflow: hidden; display: none; box-shadow: inset 0 0 50px #000; }
         
-        .player { position: absolute; width: 40px; height: 40px; border-radius: 8px; transition: 0.05s linear; }
-        .player.me { background: #00f; border: 2px solid #fff; box-shadow: 0 0 15px #00f; }
-        .player.enemy { background: #f00; border: 2px solid #ff4d4d; }
-        .player.invul { box-shadow: 0 0 25px #fff; filter: brightness(1.5); }
+        /* ИГРОКИ */
+        .player { position: absolute; width: 40px; height: 40px; border-radius: 10px; transition: 0.05s linear; z-index: 10; }
+        .player.me { background: #007bff; border: 2px solid #fff; box-shadow: 0 0 20px #007bff; }
+        .player.enemy { background: #ff0040; border: 2px solid #ff4d4d; }
         
+        /* ЭФФЕКТЫ */
+        .player.invul { box-shadow: 0 0 30px #fff, inset 0 0 10px #fff; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+        .weapon-icon { position: absolute; font-size: 30px; pointer-events: none; z-index: 20; transform-origin: bottom center; transition: 0.1s; }
+        .atk-anim { animation: sword-slash 0.3s ease-out; }
+        @keyframes sword-slash { 
+            0% { transform: rotate(0deg) scale(1); }
+            30% { transform: rotate(-60deg) scale(1.5); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        /* СПЕЦЭФФЕКТЫ СПОСОБНОСТЕЙ */
+        .vfx { position: absolute; border-radius: 50%; pointer-events: none; z-index: 5; animation: vfx-out 0.5s forwards; }
+        @keyframes vfx-out { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(4); opacity: 0; } }
+        .vfx-lemon { background: rgba(255, 255, 0, 0.4); border: 2px solid yellow; }
+        .vfx-wave { background: rgba(0, 255, 255, 0.3); border: 2px solid cyan; }
+
         .hp-container { width: 50px; height: 6px; background: #333; position: absolute; top: -15px; left: -5px; border-radius: 3px; }
-        .hp-bar { height: 100%; background: #0f0; transition: width 0.2s; }
-        .name { position: absolute; top: -30px; width: 100px; left: -30px; font-size: 10px; color: white; }
-        .weapon-icon { position: absolute; font-size: 25px; pointer-events: none; z-index: 20; }
+        .hp-bar { height: 100%; background: #0f0; transition: 0.2s; }
         
-        .atk-anim { animation: swipe 0.2s ease-in-out; }
-        @keyframes swipe { 0% { transform: scale(1); } 50% { transform: scale(1.8) rotate(30deg); } 100% { transform: scale(1); } }
-        
-        #hud { display: none; color: white; font-weight: bold; padding: 10px; }
-        .cd-bar { display: inline-block; width: 100px; height: 10px; background: #333; border-radius: 5px; vertical-align: middle; }
-        #cd-fill { height: 100%; width: 0%; background: #0f0; }
+        #hud { display: none; padding: 15px; background: #111; border-bottom: 2px solid #333; }
+        .cd-bar { display: inline-block; width: 150px; height: 12px; background: #333; border-radius: 6px; overflow: hidden; vertical-align: middle; border: 1px solid #0f0; }
+        #cd-fill { height: 100%; width: 0%; background: #0f0; box-shadow: 0 0 10px #0f0; }
     </style>
 </head>
 <body>
 
     <div id="lobby">
-        <h1>🍋 ZITRON ARENA ⚔️</h1>
-        <div class="weapon-btn" onclick="enterGame('🗡️')"><b>МЕЧ</b><p>F: Рывок</p></div>
-        <div class="weapon-btn" onclick="enterGame('🥖')"><b>БАГЕТ</b><p>F: Щит 2 сек.</p></div>
-        <div class="weapon-btn" onclick="enterGame('🍋')"><b>ЛИМОН</b><p>F: Дальний удар</p></div>
-        <div class="weapon-btn" onclick="enterGame('🎸')"><b>ГИТАРА</b><p>F: Мощная волна</p></div>
+        <h1 style="font-size: 40px; color: #0f0; text-shadow: 0 0 20px #0f0;">🍋 ZITRON ARENA: EVOLUTION</h1>
+        <div class="weapon-select">
+            <div class="weapon-btn" onclick="enterGame('🗡️')"><b>МЕЧ</b><p>F: ГИПЕР-РЫВОК</p></div>
+            <div class="weapon-btn" onclick="enterGame('🥖')"><b>БАГЕТ</b><p>F: СВЯТОЙ ЩИТ</p></div>
+            <div class="weapon-btn" onclick="enterGame('🍋')"><b>ДЕМОН-ЛИМОН</b><p>F: КИСЛОТНЫЙ ВЗРЫВ</p></div>
+            <div class="weapon-btn" onclick="enterGame('🎸')"><b>РОК-ГИТАРА</b><p>F: ЗВУКОВОЙ ШОК</p></div>
+        </div>
     </div>
 
     <div id="hud">
-        HP: <span id="myHpText">100</span> | 
-        Способность [F]: <div class="cd-bar"><div id="cd-fill"></div></div>
+        <b>HP: <span id="myHpText" style="color:#f00">100</span></b> | 
+        <b>СПОСОБНОСТЬ [F]:</b> <div class="cd-bar"><div id="cd-fill"></div></div>
     </div>
     <div id="arena" onmousedown="performAttack()"></div>
 
@@ -56,8 +70,8 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let myId = "User_" + Math.floor(Math.random() * 1000);
-    let myData = { x: 100, y: 300, vy: 0, hp: 100, wpn: '🗡️', atk: false, inv: false, cd: 0 };
+    let myId = "Zitron_" + Math.floor(Math.random() * 999);
+    let myData = { x: 100, y: 350, vy: 0, hp: 100, wpn: '🗡️', atk: false, inv: false, cd: 0 };
     let keys = {};
     let isPlaying = false;
 
@@ -67,7 +81,6 @@
         document.getElementById('arena').style.display = 'block';
         document.getElementById('hud').style.display = 'block';
         isPlaying = true;
-
         db.ref('players/' + myId).set(myData);
         db.ref('players/' + myId).onDisconnect().remove();
     }
@@ -80,94 +93,97 @@
 
     setInterval(() => {
         if (!isPlaying) return;
+        if (keys['KeyA']) myData.x -= 9;
+        if (keys['KeyD']) myData.x += 9;
+        if (keys['Space'] && myData.y >= 350) myData.vy = -18;
 
-        if (keys['KeyA']) myData.x -= 8;
-        if (keys['KeyD']) myData.x += 8;
-        if (keys['Space'] && myData.y >= 350) myData.vy = -16;
-
-        myData.vy += 0.8;
-        myData.y += myData.vy;
-
+        myData.vy += 0.9; myData.y += myData.vy;
         if (myData.y > 350) { myData.y = 350; myData.vy = 0; }
-        if (myData.x < 0) myData.x = 0;
-        if (myData.x > 800) myData.x = 800;
+        if (myData.x < 0) myData.x = 0; if (myData.x > 850) myData.x = 850;
 
-        // Кулдаун
         if (myData.cd > 0) {
             myData.cd -= 50;
             document.getElementById('cd-fill').style.width = (myData.cd / 3000 * 100) + "%";
         }
-
-        db.ref('players/' + myId).update({
-            x: myData.x, y: myData.y, wpn: myData.wpn, atk: myData.atk, inv: myData.inv
-        });
+        db.ref('players/' + myId).update({ x: myData.x, y: myData.y, wpn: myData.wpn, atk: myData.atk, inv: myData.inv });
     }, 40);
 
     function performAttack() {
         if (!isPlaying || myData.atk) return;
         myData.atk = true;
-        
         db.ref('players').once('value', snapshot => {
             const players = snapshot.val();
             for (let id in players) {
                 if (id !== myId && !players[id].inv) {
                     const enemy = players[id];
                     const dist = Math.hypot(myData.x - enemy.x, myData.y - enemy.y);
-                    if (dist < 80) db.ref('players/' + id + '/hp').transaction(hp => (hp || 100) - 10);
+                    if (dist < 85) db.ref('players/' + id + '/hp').transaction(hp => (hp || 100) - 12);
                 }
             }
         });
         setTimeout(() => { myData.atk = false; }, 300);
     }
 
+    function createVFX(type, x, y) {
+        const v = document.createElement('div');
+        v.className = 'vfx ' + type;
+        v.style.left = x + 'px'; v.style.top = y + 'px';
+        v.style.width = '100px'; v.style.height = '100px';
+        document.getElementById('arena').appendChild(v);
+        setTimeout(() => v.remove(), 500);
+    }
+
     function useAbility() {
-        myData.cd = 3000; // 3 секунды перезарядка
-        
-        if (myData.wpn === '🗡️') { // РЫВОК
-            myData.x += (keys['KeyA'] ? -150 : 150);
-        } 
-        else if (myData.wpn === '🥖') { // ЩИТ
+        myData.cd = 3000;
+        if (myData.wpn === '🗡️') {
+            myData.x += (keys['KeyA'] ? -200 : 200);
+        } else if (myData.wpn === '🥖') {
             myData.inv = true;
-            setTimeout(() => { myData.inv = false; }, 2000);
+            setTimeout(() => { myData.inv = false; }, 3000);
+        } else if (myData.wpn === '🍋') {
+            createVFX('vfx-lemon', myData.x - 30, myData.y - 30);
+            applyAreaDamage(250, 25);
+        } else if (myData.wpn === '🎸') {
+            createVFX('vfx-wave', myData.x - 30, myData.y - 30);
+            applyAreaDamage(180, 20);
         }
-        else { // ДАЛЬНИЙ БОЙ (Лимон и Гитара)
-            db.ref('players').once('value', snapshot => {
-                const players = snapshot.val();
-                for (let id in players) {
-                    if (id !== myId && !players[id].inv) {
-                        const enemy = players[id];
-                        const dist = Math.hypot(myData.x - enemy.x, myData.y - enemy.y);
-                        // Лимон бьет дальше, Гитара бьет всех вокруг
-                        if (dist < 200) db.ref('players/' + id + '/hp').transaction(hp => (hp || 100) - 20);
-                    }
+    }
+
+    function applyAreaDamage(range, damage) {
+        db.ref('players').once('value', snapshot => {
+            const players = snapshot.val();
+            for (let id in players) {
+                if (id !== myId && !players[id].inv) {
+                    const dist = Math.hypot(myData.x - players[id].x, myData.y - players[id].y);
+                    if (dist < range) db.ref('players/' + id + '/hp').transaction(hp => (hp || 100) - damage);
                 }
-            });
-        }
+            }
+        });
     }
 
     db.ref('players').on('value', snapshot => {
         if (!isPlaying) return;
         const arena = document.getElementById('arena');
         const players = snapshot.val();
-        arena.innerHTML = '';
+        arena.querySelectorAll('.player, .weapon-icon').forEach(n => n.remove());
 
         for (let id in players) {
             const d = players[id];
             if (id === myId) {
                 myData.hp = d.hp;
                 document.getElementById('myHpText').innerText = d.hp;
-                if (d.hp <= 0) { alert("ВЫ ПОГИБЛИ!"); location.reload(); }
+                if (d.hp <= 0) { alert("ВЫ ПРОИГРАЛИ!"); location.reload(); }
             }
 
             const pDiv = document.createElement('div');
             pDiv.className = 'player ' + (id === myId ? 'me' : 'enemy') + (d.inv ? ' invul' : '');
             pDiv.style.left = d.x + 'px'; pDiv.style.top = d.y + 'px';
-            pDiv.innerHTML = `<div class="hp-container"><div class="hp-bar" style="width:${d.hp}%"></div></div><div class="name">${id}</div>`;
+            pDiv.innerHTML = `<div class="hp-container"><div class="hp-bar" style="width:${d.hp}%"></div></div><div style="font-size:10px; color:white; margin-top:-35px;">${id}</div>`;
 
             const wDiv = document.createElement('div');
             wDiv.className = 'weapon-icon' + (d.atk ? ' atk-anim' : '');
             wDiv.innerText = d.wpn;
-            wDiv.style.left = (d.x + 35) + 'px'; wDiv.style.top = (d.y + 5) + 'px';
+            wDiv.style.left = (d.x + 30) + 'px'; wDiv.style.top = (d.y + 0) + 'px';
 
             arena.appendChild(pDiv);
             arena.appendChild(wDiv);
